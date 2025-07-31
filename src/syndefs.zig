@@ -1,0 +1,484 @@
+//! Module that contains all syntax definitions.
+
+pub const Syntaxes = [_]t.Syntax{
+
+    //////////////////////////////////////////////////////////////////////////
+    //// zig
+    .{
+        .ft_name = "zig",
+        .ft_ext = &.{
+            "zig",
+            "zon",
+        },
+        .ft_files = &.{},
+        .lcmt = &.{"//"},
+        .mlcmt = &.{},
+        .keywords = &.{
+            "addrspace", "align",   "allowzero",      "and",
+            "anyframe",  "anytype", "catch",          "const",
+            "else",      "enum",    "error",          "fn",
+            "for",       "if",      "opaque",         "or",
+            "orelse",    "packed",  "struct",         "switch",
+            "try",       "union",   "usingnamespace", "var",
+            "volatile",  "while",
+        },
+        .types = &.{
+            "i8",          "u8",           "i16",            "u16",
+            "i32",         "u32",          "i64",            "u64",
+            "i128",        "u128",         "isize",          "usize",
+            "c_char",      "c_short",      "c_ushort",       "c_int",
+            "c_uint",      "c_long",       "c_ulong",        "c_longlong",
+            "c_ulonglong", "c_longdouble", "f16",            "f32",
+            "f64",         "f80",          "f128",           "bool",
+            "anyopaque",   "void",         "noreturn",       "type",
+            "anyerror",    "comptime_int", "comptime_float",
+        },
+        .builtin = &.{
+            "export",   "extern",      "noinline",    "nosuspend",
+            "inline",   "suspend",     "async",       "await",
+            "defer",    "errdefer",    "unreachable", "comptime",
+            "continue", "return",      "resume",      "threadlocal",
+            "callconv", "linksection", "asm",         "noalias",
+            "test",     "pub",         "break",
+        },
+        .constant = &.{
+            "undefined", "true", "false", "null",
+        },
+        .preproc = &.{
+            "@addrSpaceCast",    "@addWithOverflow",    "@alignCast",
+            "@alignOf",          "@as",                 "@atomicLoad",
+            "@atomicRmw",        "@atomicStore",        "@bitCast",
+            "@bitOffsetOf",      "@bitSizeOf",          "@branchHint",
+            "@breakpoint",       "@mulAdd",             "@byteSwap",
+            "@bitReverse",       "@offsetOf",           "@call",
+            "@cDefine",          "@cImport",            "@cInclude",
+            "@clz",              "@cmpxchgStrong",      "@cmpxchgWeak",
+            "@compileError",     "@compileLog",         "@constCast",
+            "@ctz",              "@cUndef",             "@cVaArg",
+            "@cVaCopy",          "@cVaEnd",             "@cVaStart",
+            "@divExact",         "@divFloor",           "@divTrunc",
+            "@embedFile",        "@enumFromInt",        "@errorFromInt",
+            "@errorName",        "@errorReturnTrace",   "@errorCast",
+            "@export",           "@extern",             "@field",
+            "@fieldParentPtr",   "@FieldType",          "@floatCast",
+            "@floatFromInt",     "@frameAddress",       "@hasDecl",
+            "@hasField",         "@import",             "@inComptime",
+            "@intCast",          "@intFromBool",        "@intFromEnum",
+            "@intFromError",     "@intFromFloat",       "@intFromPtr",
+            "@max",              "@memcpy",             "@memset",
+            "@min",              "@wasmMemorySize",     "@wasmMemoryGrow",
+            "@mod",              "@mulWithOverflow",    "@panic",
+            "@popCount",         "@prefetch",           "@ptrCast",
+            "@ptrFromInt",       "@rem",                "@returnAddress",
+            "@select",           "@setEvalBranchQuota", "@setFloatMode",
+            "@setRuntimeSafety", "@shlExact",           "@shlWithOverflow",
+            "@shrExact",         "@shuffle",            "@sizeOf",
+            "@splat",            "@reduce",             "@src",
+            "@sqrt",             "@sin",                "@cos",
+            "@tan",              "@exp",                "@exp2",
+            "@log",              "@log2",               "@log10",
+            "@abs",              "@floor",              "@ceil",
+            "@trunc",            "@round",              "@subWithOverflow",
+            "@tagName",          "@This",               "@trap",
+            "@truncate",         "@Type",               "@typeInfo",
+            "@typeName",         "@TypeOf",             "@unionInit",
+            "@Vector",           "@volatileCast",       "@workGroupId",
+            "@workGroupSize",    "@workItemId",
+        },
+        .flags = .{
+            .numbers = true,
+            .strings = true,
+            .dquotes = true,
+            .chars = true,
+            .uppercase = true,
+            .hex = true,
+            .bin = true,
+            .octal = true,
+            .uscn = true,
+        },
+    },
+
+    //////////////////////////////////////////////////////////////////////////
+    //// c
+    .{
+        .ft_name = "c",
+        .ft_ext = &.{
+            "c", "h",
+        },
+        .ft_files = &.{},
+        .lcmt = &.{"//"},
+        .mlcmt = &.{ "/*", "", "*/" },
+        .keywords = &.{
+            "auto",           "case",          "const",
+            "default",        "do",            "else",
+            "enum",           "extern",        "for",
+            "goto",           "if",            "inline",
+            "register",       "restrict",      "sizeof",
+            "static",         "struct",        "switch",
+            "typedef",        "union",         "volatile",
+            "while",          "_Alignas",      "_Alignof",
+            "_Atomic",        "_Generic",      "_Noreturn",
+            "_Static_assert", "_Thread_local",
+        },
+        .types = &.{
+            "void",     "char",       "short",    "int",       "long",
+            "float",    "double",     "signed",   "unsigned",  "_Bool",
+            "_Complex", "_Imaginary", "size_t",   "ptrdiff_t", "wchar_t",
+            "int8_t",   "int16_t",    "int32_t",  "int64_t",   "uint8_t",
+            "uint16_t", "uint32_t",   "uint64_t", "intptr_t",  "uintptr_t",
+        },
+        .builtin = &.{
+            "continue", "return", "break",
+        },
+        .constant = &.{
+            "NULL", "EOF", "true", "false", "TRUE", "FALSE",
+        },
+        .preproc = &.{
+            "#include",     "#define",  "#undef",   "#ifdef",           "#ifndef",
+            "#if",          "#endif",   "#else",    "#elif",            "#line",
+            "#error",       "#pragma",  "#warning", "__FILE__",         "__LINE__",
+            "__DATE__",     "__TIME__", "__STDC__", "__STDC_VERSION__", "__func__",
+            "__FUNCTION__",
+        },
+        .flags = .{
+            .numbers = true,
+            .strings = true,
+            .dquotes = true,
+            .chars = true,
+            .uppercase = true,
+            .hex = true,
+        },
+    },
+
+    //////////////////////////////////////////////////////////////////////////
+    //// c++
+    .{
+        .ft_name = "cpp",
+        .ft_ext = &.{
+            "cpp", "cc", "cxx", "c++", "hpp", "hh", "hxx", "h++",
+        },
+        .ft_files = &.{},
+        .lcmt = &.{"//"},
+        .mlcmt = &.{ "/*", "", "*/" },
+        .keywords = &.{
+            "alignas",          "alignof",     "and",          "and_eq",
+            "asm",              "auto",        "bitand",       "bitor",
+            "case",             "catch",       "class",        "compl",
+            "const",            "consteval",   "constexpr",    "constinit",
+            "const_cast",       "co_await",    "co_return",    "co_yield",
+            "decltype",         "default",     "delete",       "do",
+            "dynamic_cast",     "else",        "enum",         "explicit",
+            "export",           "extern",      "for",          "friend",
+            "goto",             "if",          "inline",       "mutable",
+            "namespace",        "new",         "noexcept",     "not",
+            "not_eq",           "operator",    "or",           "or_eq",
+            "private",          "protected",   "public",       "register",
+            "reinterpret_cast", "requires",    "sizeof",       "static",
+            "static_assert",    "static_cast", "struct",       "switch",
+            "template",         "this",        "thread_local", "throw",
+            "try",              "typedef",     "typeid",       "typename",
+            "union",            "using",       "virtual",      "volatile",
+            "while",            "xor",         "xor_eq",
+        },
+        .types = &.{
+            "void",     "char",      "char8_t",  "char16_t",
+            "char32_t", "wchar_t",   "short",    "int",
+            "long",     "float",     "double",   "signed",
+            "unsigned", "bool",      "size_t",   "ptrdiff_t",
+            "int8_t",   "int16_t",   "int32_t",  "int64_t",
+            "uint8_t",  "uint16_t",  "uint32_t", "uint64_t",
+            "intptr_t", "uintptr_t",
+        },
+        .builtin = &.{
+            "std",      "override", "final", "concept",
+            "continue", "return",   "break",
+        },
+        .constant = &.{
+            "nullptr", "true", "false",
+        },
+        .preproc = &.{
+            "#include",            "#define",     "#undef",   "#ifdef",
+            "#ifndef",             "#if",         "#endif",   "#else",
+            "#elif",               "#line",       "#error",   "#pragma",
+            "#warning",            "__cplusplus", "__FILE__", "__LINE__",
+            "__DATE__",            "__TIME__",    "__func__", "__FUNCTION__",
+            "__PRETTY_FUNCTION__",
+        },
+        .flags = .{
+            .numbers = true,
+            .strings = true,
+            .dquotes = true,
+            .chars = true,
+            .uppercase = true,
+            .hex = true,
+            .bin = true,
+        },
+    },
+
+    //////////////////////////////////////////////////////////////////////////
+    //// python
+    .{
+        .ft_name = "python",
+        .ft_ext = &.{
+            "py", "pyw", "pyx", "pxd", "pxi",
+        },
+        .ft_files = &.{},
+        .lcmt = &.{"#"},
+        .mlcmt = &.{},
+        .keywords = &.{
+            "and",    "as",      "assert",   "class",
+            "def",    "del",     "elif",     "else",
+            "except", "finally", "for",      "from",
+            "global", "if",      "import",   "in",
+            "is",     "lambda",  "nonlocal", "not",
+            "or",     "pass",    "raise",    "try",
+            "while",  "with",    "yield",    "async",
+            "await",
+        },
+        .types = &.{
+            "int",       "float",     "complex", "str",   "bytes",
+            "bytearray", "bool",      "list",    "tuple", "dict",
+            "set",       "frozenset", "object",  "type",
+        },
+        .builtin = &.{
+            "__debug__", "self",   "cls",
+            "continue",  "return", "break",
+        },
+        .constant = &.{
+            "True", "False", "None", "NotImplemented", "Ellipsis",
+        },
+        .preproc = &.{
+            "abs",         "all",          "any",        "ascii",
+            "bin",         "bool",         "callable",   "chr",
+            "classmethod", "compile",      "delattr",    "dir",
+            "divmod",      "enumerate",    "eval",       "exec",
+            "filter",      "format",       "getattr",    "globals",
+            "hasattr",     "hash",         "help",       "hex",
+            "id",          "input",        "isinstance", "issubclass",
+            "iter",        "len",          "locals",     "map",
+            "max",         "memoryview",   "min",        "next",
+            "oct",         "open",         "ord",        "pow",
+            "print",       "property",     "range",      "repr",
+            "reversed",    "round",        "setattr",    "slice",
+            "sorted",      "staticmethod", "sum",        "super",
+            "vars",        "zip",          "__import__",
+        },
+        .flags = .{
+            .numbers = true,
+            .strings = true,
+            .dquotes = true,
+            .squotes = true,
+            .uppercase = true,
+            .hex = true,
+            .bin = true,
+            .octal = true,
+            .uscn = true,
+        },
+    },
+
+    //////////////////////////////////////////////////////////////////////////
+    //// lua
+    .{
+        .ft_name = "lua",
+        .ft_ext = &.{
+            "lua",
+        },
+        .ft_files = &.{},
+        .lcmt = &.{"--"},
+        .mlcmt = &.{ "--[[", "", "]]" },
+        .keywords = &.{
+            "and",   "do",       "else",   "elseif", "end",
+            "for",   "function", "if",     "in",     "local",
+            "not",   "or",       "repeat", "then",   "until",
+            "while",
+        },
+        .types = &.{
+            "boolean",  "number", "string", "userdata",
+            "function", "thread", "table",
+        },
+        .builtin = &.{
+            "_G",   "_VERSION", "self",
+            "goto", "return",   "break",
+        },
+        .constant = &.{
+            "true", "false", "nil",
+        },
+        .preproc = &.{
+            "assert",   "collectgarbage", "dofile",   "error",
+            "getfenv",  "getmetatable",   "ipairs",   "load",
+            "loadfile", "loadstring",     "next",     "pairs",
+            "pcall",    "print",          "rawequal", "rawget",
+            "rawlen",   "rawset",         "require",  "select",
+            "setfenv",  "setmetatable",   "tonumber", "tostring",
+            "type",     "unpack",         "xpcall",   "coroutine",
+            "debug",    "io",             "math",     "os",
+            "package",  "string",         "table",
+        },
+        .flags = .{
+            .numbers = true,
+            .strings = true,
+            .dquotes = true,
+            .squotes = true,
+            .uppercase = true,
+            .hex = true,
+        },
+    },
+
+    //////////////////////////////////////////////////////////////////////////
+    //// javascript
+    .{
+        .ft_name = "javascript",
+        .ft_ext = &.{
+            "js", "jsx", "mjs", "cjs",
+        },
+        .ft_files = &.{},
+        .lcmt = &.{"//"},
+        .mlcmt = &.{ "/*", "", "*/" },
+        .keywords = &.{
+            "case",    "catch",   "class",      "const",    "debugger",
+            "default", "delete",  "do",         "else",     "export",
+            "extends", "finally", "for",        "function", "if",
+            "import",  "in",      "instanceof", "let",      "new",
+            "super",   "switch",  "this",       "throw",    "try",
+            "typeof",  "var",     "void",       "while",    "with",
+            "yield",   "async",   "await",      "static",   "get",
+            "set",
+        },
+        .types = &.{
+            "boolean", "number",  "bigint",  "string",   "symbol",
+            "object",  "Array",   "Object",  "Function", "String",
+            "Number",  "Boolean", "Date",    "RegExp",   "Error",
+            "Map",     "Set",     "Promise", "Symbol",   "BigInt",
+        },
+        .builtin = &.{
+            "globalThis", "console", "window",   "document",
+            "global",     "process", "continue", "return",
+            "break",
+        },
+        .constant = &.{
+            "true", "false", "null", "undefined", "NaN", "Infinity",
+        },
+        .preproc = &.{
+            "parseInt",      "parseFloat",         "isNaN",
+            "isFinite",      "encodeURI",          "encodeURIComponent",
+            "decodeURI",     "decodeURIComponent", "eval",
+            "setTimeout",    "setInterval",        "clearTimeout",
+            "clearInterval", "JSON",               "Math",
+            "console",       "alert",              "confirm",
+            "prompt",        "require",            "module",
+            "exports",       "__dirname",          "__filename",
+        },
+        .flags = .{
+            .numbers = true,
+            .strings = true,
+            .dquotes = true,
+            .squotes = true,
+            .uppercase = true,
+            .hex = true,
+            .bin = true,
+            .octal = true,
+        },
+    },
+
+    //////////////////////////////////////////////////////////////////////////
+    //// gitconfig
+    .{
+        .ft_name = "gitconfig",
+        .ft_ext = &.{},
+        .ft_files = &.{ ".gitconfig", ".git/config" },
+        .lcmt = &.{ "#", ";" },
+        .mlcmt = &.{},
+        .keywords = &.{
+            "auto",     "always", "never", "local", "global", "system",
+            "worktree",
+        },
+        .types = &.{
+            "core",        "user",       "remote",        "branch",
+            "merge",       "push",       "pull",          "fetch",
+            "alias",       "color",      "diff",          "log",
+            "status",      "commit",     "tag",           "rebase",
+            "rerere",      "submodule",  "credential",    "http",
+            "https",       "url",        "init",          "clone",
+            "gc",          "fsck",       "pack",          "receive",
+            "transfer",    "uploadpack", "uploadarchive", "advice",
+            "apply",       "blame",      "browser",       "clean",
+            "column",      "format",     "grep",          "gui",
+            "help",        "i18n",       "imap",          "instaweb",
+            "interactive", "mailinfo",   "mailmap",       "man",
+            "notes",       "pager",      "pretty",        "protocol",
+            "sendemail",   "sequence",   "showbranch",    "web",
+        },
+        .builtin = &.{
+            "HEAD",   "FETCH_HEAD", "ORIG_HEAD", "MERGE_HEAD",
+            "master", "main",       "origin",    "upstream",
+            "refs",   "heads",      "tags",      "remotes",
+        },
+        .constant = &.{
+            "true", "false", "yes", "no", "on", "off",
+        },
+        .preproc = &.{
+            "name",                           "email",
+            "editor",                         "pager",
+            "excludesfile",                   "attributesfile",
+            "hooksPath",                      "templatedir",
+            "gitProxy",                       "sshCommand",
+            "askpass",                        "autocrlf",
+            "safecrlf",                       "filemode",
+            "ignorecase",                     "precomposeUnicode",
+            "hideDotFiles",                   "symlinks",
+            "bare",                           "worktree",
+            "logAllRefUpdates",               "repositoryformatversion",
+            "sharedrepository",               "denyCurrentBranch",
+            "denyNonFastforwards",            "fsckObjects",
+            "transferFsckObjects",            "receivefsckObjects",
+            "allowTipSHA1InWant",             "allowReachableSHA1InWant",
+            "allowAnySHA1InWant",             "advertiseRefs",
+            "allowUnadvertisedObjectRequest", "keepAlive",
+            "maxStartups",                    "timeout",
+            "uploadpack",                     "uploadarchive",
+        },
+        .flags = .{
+            .numbers = true,
+            .strings = true,
+            .dquotes = true,
+            .squotes = true,
+        },
+    },
+};
+
+/// Array with highlight groups. Unfortunately there are no designated
+/// initializers in zig, so we can't use them. As an aggravation, the order
+/// must match exactly the one of the members of the t.Highlight enum.
+/// We use attr constants to compensate.
+pub const hlGroups = [_]t.HlGroup{
+    .{ .attr = NORMAL, .reverse = false, .bold = false, .underline = false },
+    .{ .attr = COMMENT, .reverse = false, .bold = false, .underline = false },
+    .{ .attr = ML_COMMENT, .reverse = false, .bold = false, .underline = false },
+    .{ .attr = NUMBER, .reverse = false, .bold = false, .underline = false },
+    .{ .attr = STRING, .reverse = false, .bold = false, .underline = false },
+    .{ .attr = KEYWORD, .reverse = false, .bold = false, .underline = false },
+    .{ .attr = TYPES, .reverse = false, .bold = false, .underline = false },
+    .{ .attr = BUILTIN, .reverse = false, .bold = false, .underline = false },
+    .{ .attr = CONSTANT, .reverse = false, .bold = false, .underline = false },
+    .{ .attr = PREPROC, .reverse = false, .bold = false, .underline = false },
+    .{ .attr = UPPERCASE, .reverse = false, .bold = false, .underline = false },
+    .{ .attr = ESCAPE, .reverse = false, .bold = false, .underline = false },
+    .{ .attr = MATCH, .reverse = true, .bold = false, .underline = false },
+};
+
+const t = @import("types.zig");
+const CSI = @import("ansi.zig").CSI;
+
+const NORMAL = CSI ++ "39m";
+const COMMENT = CSI ++ "90m";
+const ML_COMMENT = CSI ++ "94m";
+const NUMBER = CSI ++ "97m";
+const STRING = CSI ++ "32m";
+const KEYWORD = CSI ++ "36m";
+const TYPES = CSI ++ "96m";
+const BUILTIN = CSI ++ "35m";
+const CONSTANT = CSI ++ "33m";
+const PREPROC = CSI ++ "91m";
+const UPPERCASE = CSI ++ "93m";
+const ESCAPE = CSI ++ "31m";
+const MATCH = CSI ++ "32m";

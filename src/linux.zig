@@ -1,0 +1,111 @@
+//! Module that handles interactions with the operating system.
+
+// Write bytes to stdout, return error if the requested amount of bytes
+// couldn't be written.
+pub fn write(buf: []const u8) !void {
+    if (try posix.write(STDOUT_FILENO, buf) != buf.len) {
+        return error.WriteIncomplete;
+    }
+}
+
+/// Read the window size into the `wsz` struct.
+pub fn winsize(wsz: *posix.winsize) usize {
+    return linux.ioctl(STDOUT_FILENO, linux.T.IOCGWINSZ, @intFromPtr(wsz));
+}
+
+/// Read a character from stdin.
+pub fn readChar(c: *u8) !usize {
+    return posix.read(STDIN_FILENO, @as([*]u8, @ptrCast(c))[0..1]);
+}
+
+/// Keep reading from stdin until we get a valid character, ignoring
+/// .WouldBlock errors.
+pub fn readAtLeastOneChar(c: *u8) !void {
+    while (true) {
+        const n = readChar(c) catch |err| switch (err) {
+            error.WouldBlock => continue,
+            else => return err,
+        };
+        if (n == 1) return;
+        if (n == -1 and posix.errno(n) == linux.E.AGAIN) {
+            return error.EndOfStream;
+        }
+    }
+}
+
+/// Return a file descriptor for a file to be opened, path can be either
+/// absolute or relative. Tilde expansion is not handled.
+pub fn openFileHandle(path: []const u8, flags: fs.File.OpenFlags) fs.File.OpenError!fs.File {
+    if (fs.path.isAbsolute(path)) {
+        return try fs.openFileAbsolute(path, flags);
+    } else {
+        return try fs.cwd().openFile(path, flags);
+    }
+}
+
+/// Return a file descriptor for a file to be written, path can be either
+/// absolute or relative. Tilde expansion is not handled. FileNotFound returned
+/// when directory doesn't exist and file can't be written.
+pub fn writeFileHandle(path: []const u8, flags: fs.File.CreateFlags) fs.File.OpenError!fs.File {
+    if (fs.path.isAbsolute(path)) {
+        return try fs.createFileAbsolute(path, flags);
+    } else {
+        return try fs.cwd().createFile(path, flags);
+    }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//                              Raw mode
+//
+///////////////////////////////////////////////////////////////////////////////
+
+/// Enable terminal raw mode, return previous configuration.
+pub fn enableRawMode() !linux.termios {
+    const orig_termios = try posix.tcgetattr(STDIN_FILENO);
+
+    // make a copy
+    var termios = orig_termios;
+
+    // Terminal mode flags:
+    termios.lflag.ECHO = false; // don't echo input characters
+    termios.lflag.ICANON = false; // read input byte-by-byte instead of line-by-line
+    termios.lflag.ISIG = false; // disable Ctrl-C and Ctrl-Z signals
+    termios.iflag.IXON = false; // disable Ctrl-S and Ctrl-Q signals
+    termios.lflag.IEXTEN = false; // disable Ctrl-V
+    termios.iflag.ICRNL = false; // CTRL-M being read as \n
+    termios.oflag.OPOST = false; // disable output processing
+    termios.iflag.BRKINT = false; // break conditions cause SIGINT signal
+    termios.iflag.INPCK = false; // disable parity checking (obsolete?)
+    termios.iflag.ISTRIP = false; // disable stripping of 8th bit
+    termios.cflag.CSIZE = .CS8; // set character size to 8 bits
+
+    // Set read timeouts
+    termios.cc[@intFromEnum(linux.V.MIN)] = 0; // Return immediately when any bytes are available
+    termios.cc[@intFromEnum(linux.V.TIME)] = 1; // Wait up to 0.1 seconds for input
+
+    // update config
+    try posix.tcsetattr(STDIN_FILENO, .FLUSH, termios);
+
+    return orig_termios;
+}
+
+/// Disable terminal raw mode by restoring the saved configuration.
+pub fn disableRawMode(termios: linux.termios) void {
+    posix.tcsetattr(STDIN_FILENO, .FLUSH, termios) catch @panic("Disabling raw mode failed!");
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//                              Constants
+//
+///////////////////////////////////////////////////////////////////////////////
+
+const std = @import("std");
+const linux = std.os.linux;
+const fs = std.fs;
+const posix = std.posix;
+
+const STDOUT_FILENO = posix.STDOUT_FILENO;
+const STDIN_FILENO = posix.STDIN_FILENO;
