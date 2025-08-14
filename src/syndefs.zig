@@ -107,7 +107,7 @@ pub const Syntaxes = [_]t.Syntax{
         },
         .ft_files = &.{},
         .lcmt = &.{"//"},
-        .mlcmt = &.{ "/*", "", "*/" },
+        .mlcmt = &.{ "/*", " *", "*/" },
         .keywords = &.{
             "auto",           "case",          "const",
             "default",        "do",            "else",
@@ -159,7 +159,7 @@ pub const Syntaxes = [_]t.Syntax{
         },
         .ft_files = &.{},
         .lcmt = &.{"//"},
-        .mlcmt = &.{ "/*", "", "*/" },
+        .mlcmt = &.{ "/*", " *", "*/" },
         .keywords = &.{
             "alignas",          "alignof",     "and",          "and_eq",
             "asm",              "auto",        "bitand",       "bitor",
@@ -333,7 +333,7 @@ pub const Syntaxes = [_]t.Syntax{
         },
         .ft_files = &.{},
         .lcmt = &.{"//"},
-        .mlcmt = &.{ "/*", "", "*/" },
+        .mlcmt = &.{ "/*", " *", "*/" },
         .keywords = &.{
             "case",    "catch",   "class",      "const",    "debugger",
             "default", "delete",  "do",         "else",     "export",
