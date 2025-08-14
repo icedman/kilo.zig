@@ -6,11 +6,13 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+/// Total size of the terminal screen where the editor runs.
 pub const Screen = struct {
     rows: usize,
     cols: usize,
 };
 
+/// The state of the editor.
 pub const Editor = struct {
     screen: Screen = Screen{ .rows = 0, .cols = 0 },
     should_quit: bool = false,
@@ -20,6 +22,9 @@ pub const Editor = struct {
     welcomeMsg: Chars,
 };
 
+/// A 'view' of the current buffer, is what we can see of it, and where the
+/// cursor lies in it. It's basically the editor window where the file is
+/// shown.
 pub const View = struct {
     cx: usize = 0, // cursor column
     cy: usize = 0, // cursor line
@@ -29,6 +34,7 @@ pub const View = struct {
     coloff: usize = 0, // the leftmost visible column
 };
 
+/// The contents of what we're working on, with all its attributes.
 pub const Buffer = struct {
     allocator: std.mem.Allocator = undefined,
     dirty: bool = false, // modified state
@@ -54,6 +60,7 @@ pub const Buffer = struct {
     }
 };
 
+/// Each row of a buffer.
 pub const Row = struct {
     allocator: std.mem.Allocator,
     chars: Chars,
@@ -95,7 +102,7 @@ pub const Row = struct {
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-//                              Other ypes
+//                              Other types
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -107,6 +114,7 @@ pub const EditorError = error{
 
 pub const FileError = std.fs.File.OpenError || std.fs.File.WriteError;
 
+/// ASCII codes of the keys, as they are read from stdin.
 pub const Key = enum(u8) {
     ctrl_b = 2,
     ctrl_c = 3,
@@ -125,14 +133,14 @@ pub const Key = enum(u8) {
     esc = 27,
     backspace = 127,
     left = 128,
-    right,
-    up,
-    down,
-    del,
-    home,
-    end,
-    page_up,
-    page_down,
+    right = 129,
+    up = 130,
+    down = 131,
+    del = 132,
+    home = 133,
+    end = 134,
+    page_up = 135,
+    page_down = 136,
     _
 };
 
@@ -147,13 +155,15 @@ pub const Direction = enum { forward, backward };
 /// Return value for all callbacks
 pub const CbRetv = EditorError!void;
 
+/// Arguments for the prompt callback
 pub const PromptCbArgs = struct {
-    input: *Chars,
-    key: Key,
-    saved: View,
-    final: bool = false,
+    input: *Chars, // current input entered by user
+    key: Key, // last typed key
+    saved: View, // saved view, in case it needs to be restored
+    final: bool = false, // becomes true in the last callback invocation
 };
 
+/// The prompt callback function type
 pub const PromptCb = fn(PromptCbArgs) CbRetv;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -208,7 +218,7 @@ pub const Highlight = enum(u8) {
 };
 
 pub const HlGroup = struct {
-    attr: []const u8,
+    attr: []const u8, // the highlight CSI escape sequence
     reverse: bool,
     bold: bool,
     underline: bool,
