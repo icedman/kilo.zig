@@ -709,7 +709,15 @@ fn findCallback(ca: t.PromptCbArgs) t.CbRetv {
         @memcpy(static.match, row.hl);
         @memset(row.hl[V.rx..V.rx + ca.input.items.len], t.Highlight.match);
     }
+    else if (next or prev) {
+        // the next match wasn't found in the searching direction
+        // we still set the highlight for the current match, since the original
+        // highlight has been restored at the top of the function
+        @memset(row.hl[V.rx..V.rx + ca.input.items.len], t.Highlight.match);
+    }
     else {
+        // a match wasn't found because the input couldn't be found
+        // restore the original view (from before the start of the search)
         V = ca.saved;
     }
 }
@@ -751,24 +759,23 @@ fn findForward(query: []const u8, lnr: *usize, col: usize) ?[]const u8 {
 fn findBackward(query: []const u8, lnr: *usize, col: usize) ?[]const u8 {
     // first line, search up to col
     var rowchars = rowAt(lnr.*).render;
+    var i: usize = undefined;
 
     if (str.lastIndexOf(rowchars[0..col], query)) |m| {
         return rowchars[m..m + query.len];
     }
-    else if (lnr.* == 0) {
-        return null;
-    }
+    else if (lnr.* > 0) {
+        // previous lines, search full line
+        i = lnr.* - 1;
+        while (true) : (i -= 1) {
+            rowchars = rowAt(i).render;
 
-    // previous lines, search full line
-    var i = lnr.* - 1;
-    while (true) : (i -= 1) {
-        rowchars = rowAt(i).render;
-
-        if (str.lastIndexOf(rowchars, query)) |m| {
-            lnr.* = i;
-            return rowchars[m..m + query.len];
+            if (str.lastIndexOf(rowchars, query)) |m| {
+                lnr.* = i;
+                return rowchars[m..m + query.len];
+            }
+            if (i == 0) break;
         }
-        if (i == 0) break;
     }
 
     if (!opt.wrapscan) {
@@ -788,10 +795,14 @@ fn findBackward(query: []const u8, lnr: *usize, col: usize) ?[]const u8 {
     // check again the starting line, this time in the part after the offset
     rowchars = rowAt(lnr.*).render;
 
-    return if (str.lastIndexOf(rowchars[col..], query)) |m| {
-        return rowchars[m..m + query.len];
+    if (str.lastIndexOf(rowchars[col..], query)) |m| {
+        // m is the index in the substring starting from `col`, therefore we
+        // must add `col` to get the real index in the row
+        return rowchars[(m + col)..(m + col + query.len)];
     }
-    else null;
+    else {
+        return null;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
