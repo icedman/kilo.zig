@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const linux = @import("linux.zig");
 const editor = @import("editor.zig");
 const types = @import("types.zig");
@@ -6,7 +7,7 @@ const ansi = @import("ansi.zig");
 
 var orig_termios: std.os.linux.termios = undefined;
 
-/// Our panic handler disable terminal raw mode and calls the default panic
+/// Our panic handler disables terminal raw mode and calls the default panic
 /// handler.
 fn crashed(msg: []const u8, trace: ?usize) noreturn {
     linux.disableRawMode(orig_termios);
@@ -20,8 +21,12 @@ pub fn main() !void {
     defer linux.disableRawMode(orig_termios);
 
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
     defer _ = gpa.deinit();
+
+    const allocator = switch (builtin.mode) {
+        .Debug => gpa.allocator(),
+        else => std.heap.smp_allocator,
+    };
 
     try editor.init(allocator, try ansi.getWindowSize());
     defer editor.deinit();
