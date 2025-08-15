@@ -33,28 +33,6 @@ pub fn readAtLeastOneChar(c: *u8) !void {
     }
 }
 
-/// Return a file descriptor for a file to be opened, path can be either
-/// absolute or relative. Tilde expansion is not handled.
-pub fn openFileHandle(path: []const u8, flags: fs.File.OpenFlags) fs.File.OpenError!fs.File {
-    if (fs.path.isAbsolute(path)) {
-        return try fs.openFileAbsolute(path, flags);
-    } else {
-        return try fs.cwd().openFile(path, flags);
-    }
-}
-
-/// Return a file descriptor for a file to be written, path can be either
-/// absolute or relative. Tilde expansion is not handled. FileNotFound returned
-/// when directory doesn't exist and file can't be written.
-pub fn writeFileHandle(path: []const u8, flags: fs.File.CreateFlags) fs.File.OpenError!fs.File {
-    if (fs.path.isAbsolute(path)) {
-        return try fs.createFileAbsolute(path, flags);
-    } else {
-        return try fs.cwd().createFile(path, flags);
-    }
-}
-
-
 ///////////////////////////////////////////////////////////////////////////////
 //
 //                              Raw mode

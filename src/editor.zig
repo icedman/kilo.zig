@@ -67,7 +67,7 @@ fn openFile(path: []const u8) !void {
     B.syntax = try selectSyntax();
 
     // read lines if the file could be opened
-    const file = linux.openFileHandle(path, .{ .mode = .read_only });
+    const file = std.fs.cwd().openFile(path, .{ .mode = .read_only });
     if (file) |f| {
         defer f.close();
         try readLines(f);
@@ -108,7 +108,7 @@ fn saveFile() !void {
         try buf.append('\n');
     }
 
-    const file = linux.writeFileHandle(B.filename.?, .{ .truncate = true });
+    const file = std.fs.cwd().createFile(B.filename.?, .{ .truncate = true });
     if (file) |f| {
         defer f.close();
         f.writer().writeAll(buf.items) catch |err| return ioerr(err);
