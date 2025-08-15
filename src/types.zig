@@ -187,7 +187,7 @@ pub const Syntax = struct {
     ft_ext:   []const []const u8,  // array of extensions for filetype detection
     ft_files: []const []const u8,  // array of full filenames for filetype detection
     lcmt:     []const []const u8,  // leaders for single-line comments
-    mlcmt:    []const []const u8,  // [0] is start of block
+    mlcmt:    ?[3][]const u8,      // [0] is start of block
                                    // [1] is leader for lines between start and end
                                    // [2] is end of block
     keywords: []const []const u8,  // array of words with 'Keywords' highlight

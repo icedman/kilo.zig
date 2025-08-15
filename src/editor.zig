@@ -1268,8 +1268,8 @@ fn updateSyntax(ix: usize) !void {
     const rowlen = row.render.len;
 
     const s = B.syndef.?;
-    const cl = s.lcmt;
-    const cb = s.mlcmt;
+    const lc = s.lcmt;
+    const mlc = s.mlcmt;
     const flags = s.flags;
 
     // character is preceded by a separator
@@ -1311,12 +1311,14 @@ fn updateSyntax(ix: usize) !void {
         prev_hl = if (i > 0) row.hl[i - 1] else t.Highlight.normal;
 
         // ML comments
-        if (cb.len > 0 and !in_string) {
+        if (mlc != null and mlc.?.len > 0 and !in_string) {
+            const mc = mlc.?;
+
             if (in_mlcomment) {
-                const len = cb[2].len;
+                const len = mc[2].len;
                 row.hl[i] = t.Highlight.mlcomment;
 
-                if (i + len <= rowlen and str.eql(row.render[i..i + len], cb[2])) { // END
+                if (i + len <= rowlen and str.eql(row.render[i..i + len], mc[2])) { // END
                     @memset(row.hl[i..i + len], t.Highlight.mlcomment);
                     i += len;
                     in_mlcomment = false;
@@ -1330,9 +1332,9 @@ fn updateSyntax(ix: usize) !void {
 
             }
             else {
-                const len = cb[0].len;
+                const len = mc[0].len;
 
-                if (i + len <= rowlen and str.eql(row.render[i..i + len], cb[0])) { // START
+                if (i + len <= rowlen and str.eql(row.render[i..i + len], mc[0])) { // START
                     @memset(row.hl[i..i + len], t.Highlight.mlcomment);
                     i += len;
                     in_mlcomment = true;
@@ -1342,8 +1344,8 @@ fn updateSyntax(ix: usize) !void {
         }
 
         // single-line comment
-        if (cl.len > 0 and !in_string and !in_mlcomment) {
-            for (cl) |ldr| {
+        if (lc.len > 0 and !in_string and !in_mlcomment) {
+            for (lc) |ldr| {
                 if (i + ldr.len <= rowlen and str.eql(row.render[i..i + ldr.len], ldr)) {
                     @memset(row.hl[i..], t.Highlight.comment);
                     break :toplevel;

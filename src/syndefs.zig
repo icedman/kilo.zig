@@ -12,7 +12,7 @@ pub const Syntaxes = [_]t.Syntax{
         },
         .ft_files = &.{},
         .lcmt = &.{"//"},
-        .mlcmt = &.{},
+        .mlcmt = null,
         .keywords = &.{
             "addrspace", "align",   "allowzero",      "and",
             "anyframe",  "anytype", "catch",          "const",
@@ -107,7 +107,7 @@ pub const Syntaxes = [_]t.Syntax{
         },
         .ft_files = &.{},
         .lcmt = &.{"//"},
-        .mlcmt = &.{ "/*", " *", "*/" },
+        .mlcmt = .{ "/*", " *", "*/" },
         .keywords = &.{
             "auto",           "case",          "const",
             "default",        "do",            "else",
@@ -159,7 +159,7 @@ pub const Syntaxes = [_]t.Syntax{
         },
         .ft_files = &.{},
         .lcmt = &.{"//"},
-        .mlcmt = &.{ "/*", " *", "*/" },
+        .mlcmt = .{ "/*", " *", "*/" },
         .keywords = &.{
             "alignas",          "alignof",     "and",          "and_eq",
             "asm",              "auto",        "bitand",       "bitor",
@@ -224,7 +224,7 @@ pub const Syntaxes = [_]t.Syntax{
         },
         .ft_files = &.{},
         .lcmt = &.{"#"},
-        .mlcmt = &.{},
+        .mlcmt = .{ "\"\"\"", "", "\"\"\"" },
         .keywords = &.{
             "and",    "as",      "assert",   "class",
             "def",    "del",     "elif",     "else",
@@ -285,7 +285,7 @@ pub const Syntaxes = [_]t.Syntax{
         },
         .ft_files = &.{},
         .lcmt = &.{"--"},
-        .mlcmt = &.{ "--[[", "", "]]" },
+        .mlcmt = .{ "--[[", "", "]]" },
         .keywords = &.{
             "and",   "do",       "else",   "elseif", "end",
             "for",   "function", "if",     "in",     "local",
@@ -333,7 +333,7 @@ pub const Syntaxes = [_]t.Syntax{
         },
         .ft_files = &.{},
         .lcmt = &.{"//"},
-        .mlcmt = &.{ "/*", " *", "*/" },
+        .mlcmt = .{ "/*", " *", "*/" },
         .keywords = &.{
             "case",    "catch",   "class",      "const",    "debugger",
             "default", "delete",  "do",         "else",     "export",
@@ -387,7 +387,7 @@ pub const Syntaxes = [_]t.Syntax{
         .ft_ext = &.{},
         .ft_files = &.{ ".gitconfig", ".git/config" },
         .lcmt = &.{ "#", ";" },
-        .mlcmt = &.{},
+        .mlcmt = null,
         .keywords = &.{
             "auto",     "always", "never", "local", "global", "system",
             "worktree",
