@@ -454,26 +454,6 @@ fn rowAppendString(ix: usize, chars: []const u8) !void {
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-/// Insert `n` lines above cursor position.
-fn insertLinesAbove(n: usize) !void {
-    var i: usize = 0;
-    while (i < n) : (i += 1) {
-        try insertRow(V.cy, "");
-        V.cy += 1;
-    }
-    V.cx = 0;
-}
-
-/// Insert `n` lines below cursor position.
-fn insertLinesBelow(n: usize) !void {
-    var i: usize = 0;
-    while (i < n) : (i += 1) {
-        V.cy += 1;
-        try insertRow(V.cy, "");
-    }
-    V.cx = 0;
-}
-
 /// Insert a new line at cursor position. Will carry to the next line
 /// everything that is after the cursor.
 fn insertNewLine() !void {
@@ -482,7 +462,8 @@ fn insertNewLine() !void {
 
     // at first column, just insert an empty line above the cursor
     if (V.cx == 0) {
-        try insertLinesAbove(1);
+        try insertRow(V.cy, "");
+        V.cy += 1;
         return;
     }
 
