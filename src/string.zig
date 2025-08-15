@@ -59,7 +59,7 @@ pub fn getExtension(path: []u8) ?[]u8 {
 /// Return true if character is a separator (not a word character).
 pub fn isSeparator(c: u8) bool {
     return switch (c) {
-        ' ', '\t' => true,
+        inline ' ', '\t' => true,
         '0'...'9', 'a'...'z', 'A'...'Z', '_' => false,
         else => true,
     };
