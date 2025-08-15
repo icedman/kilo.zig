@@ -583,7 +583,7 @@ fn findCallback(ca: t.PromptCbArgs) t.CbRetv {
     const static = struct {
         var direction: t.Direction = .forward;
         var found: bool = false;
-        var view: t.View = undefined;
+        var view: t.View = .{};
         var lnum: usize = 0;
         var match: []t.Highlight = &.{};
     };

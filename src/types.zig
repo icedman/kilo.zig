@@ -36,7 +36,7 @@ pub const View = struct {
 
 /// The contents of what we're working on, with all its attributes.
 pub const Buffer = struct {
-    allocator: std.mem.Allocator = undefined,
+    allocator: std.mem.Allocator,
     dirty: bool = false, // modified state
     rows: std.ArrayList(Row), // buffer rows
     filename: ?[]u8 = null, // path of the file
