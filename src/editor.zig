@@ -70,7 +70,7 @@ fn openFile(path: []const u8) !void {
     const file = linux.openFileHandle(path, .{ .mode = .read_only });
     if (file) |f| {
         defer f.close();
-        try readLines(f, appendRow);
+        try readLines(f);
     }
     else |err| switch (err) {
         error.FileNotFound => {}, // new unsaved file
@@ -124,21 +124,14 @@ fn saveFile() !void {
 }
 
 /// Read all lines from file.
-/// `action` is a funcref that accepts a string argument (the read line), this
-/// function is called inside the while loop.
-fn readLines(file: std.fs.File, action: fn(line: []const u8) t.EditorError!void) !void {
+fn readLines(file: std.fs.File) !void {
     var buffered = std.io.bufferedReader(file.reader());
     const reader = buffered.reader();
 
     while(try reader.readUntilDelimiterOrEofAlloc(alc, '\n', maxUsize)) |line| {
         defer alc.free(line);
-        try action(line);
+        try insertRow(B.rows.items.len, line);
     }
-}
-
-/// The `action` argument for the readLines() function.
-fn appendRow(line: []const u8) t.EditorError!void {
-    try insertRow(B.rows.items.len, line);
 }
 
 /// Handle an error of type FileError by printing an error message, without
