@@ -679,7 +679,7 @@ fn findCallback(ca: t.PromptCbArgs) t.EditorError!void {
         static.lnum = match_lnr;
 
         // first make a copy of current highlight, to be restored later
-        static.oldhl = try alc.realloc(static.oldhl, row.render.len);
+        static.oldhl = try maybeRealloc(t.Highlight, static.oldhl, row.render.len);
         @memcpy(static.oldhl, row.hl);
         // apply search highlight
         @memset(row.hl[V.rx..V.rx + ca.input.items.len], t.Highlight.match);
@@ -1587,6 +1587,17 @@ fn rowAt(ix: usize) *t.Row {
 /// Clear the message area. Can't fail because it won't reallocate.
 fn clearStatusMessage() void {
     setStatusMessage("", .{}) catch {};
+}
+
+/// Choose between doing a realloc or a free + alloc.
+fn maybeRealloc(comptime T: type, src: []T, newsize: usize) ![]T {
+    if (newsize <= src.len) {
+        return try alc.realloc(src, newsize);
+    }
+    else {
+        alc.free(src);
+        return try alc.alloc(T, newsize);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
