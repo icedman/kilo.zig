@@ -579,7 +579,7 @@ fn find() !void {
 /// The saved view is restored when the current query isn't found, or when
 /// backspace clears the query, so that the search starts from the original
 /// position.
-fn findCallback(ca: t.PromptCbArgs) t.CbRetv {
+fn findCallback(ca: t.PromptCbArgs) t.EditorError!void {
     const static = struct {
         var direction: t.Direction = .forward;
         var found: bool = false;

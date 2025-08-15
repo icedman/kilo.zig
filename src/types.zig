@@ -152,9 +152,6 @@ pub const Direction = enum { forward, backward };
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-/// Return value for all callbacks
-pub const CbRetv = EditorError!void;
-
 /// Arguments for the prompt callback
 pub const PromptCbArgs = struct {
     input: *Chars, // current input entered by user
@@ -164,7 +161,7 @@ pub const PromptCbArgs = struct {
 };
 
 /// The prompt callback function type
-pub const PromptCb = fn(PromptCbArgs) CbRetv;
+pub const PromptCb = fn(PromptCbArgs) EditorError!void;
 
 ///////////////////////////////////////////////////////////////////////////////
 //
