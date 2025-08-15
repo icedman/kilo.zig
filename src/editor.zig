@@ -169,17 +169,12 @@ fn delRow(ix: usize) void {
 /// Performs a syntax update at the end.
 fn updateRow(ix: usize) !void {
     const row = rowAt(ix);
-    const tabs = str.count(row.chars.items, '\t');
+
+    // get the length of the rendered row and reallocate
+    const rlen = cxToRx(row, row.len());
+    row.render = try alc.realloc(row.render, rlen);
+
     const TS = opt.tabstop;
-
-    // Each tab must be converted to spaces, and each can take up to (but not
-    // necessarily as much) TABSTOP space characters. So we increase the amount
-    // to allocate by the number of tabs, multiplied by (TABSTOP - 1),
-    // subtracting one because one tab counts for one character in row.chars,
-    // and it will be removed. Note that we don't use NUL terminator.
-    const rsize = row.len() + tabs * (TS - 1);
-    row.render = try alc.realloc(row.render, rsize);
-
     var idx: usize = 0;
     var i: usize = 0;
 
@@ -187,9 +182,8 @@ fn updateRow(ix: usize) !void {
         if (row.at(i) == '\t') {
             row.render[idx] = ' ';
             idx += 1;
-            while (idx % TS != 0) {
+            while (idx % TS != 0) : (idx += 1) {
                 row.render[idx] = ' ';
-                idx += 1;
             }
         }
         else {
@@ -197,7 +191,6 @@ fn updateRow(ix: usize) !void {
             idx += 1;
         }
     }
-
     try updateSyntax(ix);
 }
 
