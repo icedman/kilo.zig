@@ -6,20 +6,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-/// Allocate a new string, fill it with some content and return it.
-pub fn dup(allocator: Allocator, src: []const u8) ![]u8 {
-    const buf = try allocator.alloc(u8, src.len);
-    @memcpy(buf, src);
-    return buf;
-}
-
-/// Reallocate `dst` to make `src` fit and return the slice.
-pub fn copy(allocator: Allocator, dst: []u8, src: []const u8) ![]u8 {
-    const buf = try allocator.realloc(dst, src.len);
-    @memcpy(buf, src);
-    return buf;
-}
-
 /// Count the occurrences of `needle` in `haystack`.
 pub fn count(haystack: []const u8, needle: u8) usize {
     var n: usize = 0;

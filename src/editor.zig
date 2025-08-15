@@ -695,11 +695,12 @@ fn findCallback(ca: t.PromptCbArgs) t.CbRetv {
         std.debug.print("match: |{s}| at {},{}\n", .{m, match_lnr, V.rx});
 
         static.view = saveView(V);
-
-        // do the highlight, but first make a copy of current highlight
         static.lnum = match_lnr;
+
+        // first make a copy of current highlight, to be restored later
         static.match = try alc.realloc(static.match, row.render.len);
         @memcpy(static.match, row.hl);
+        // apply search highlight
         @memset(row.hl[V.rx..V.rx + ca.input.items.len], t.Highlight.match);
     }
     else if (next or prev) {
@@ -1238,14 +1239,14 @@ fn selectSyntax() !?[]const u8 {
             for (syntax.ft_ext) |ext| {
                 if (str.eql(ext, e)) {
                     B.syndef = syntax;
-                    return try str.dup(alc, syntax.ft_name);
+                    return try alc.dupe(u8, syntax.ft_name);
                 }
             }
         }
         for (syntax.ft_files) |name| {
             if (str.eql(B.filename.?, name) or str.isTail(B.filename.?, name)) {
                 B.syndef = syntax;
-                return try str.dup(alc, syntax.ft_name);
+                return try alc.dupe(u8, syntax.ft_name);
             }
         }
     }
@@ -1583,10 +1584,8 @@ fn getStatuslineFilename() []const u8 {
 
 /// Update the filename, by (re)allocating from `path`.
 fn updateFilename(filename: ?[]u8, path: []const u8) ![]u8 {
-    if (filename) |name|
-        return try str.copy(alc, name, path)
-    else
-        return try str.dup(alc, path);
+    if (filename) |name| alc.free(name);
+    return try alc.dupe(u8, path);
 }
 
 /// Generate the welcome string.
