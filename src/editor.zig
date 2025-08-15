@@ -1084,18 +1084,8 @@ fn drawStatusline(ab: *Chars) !void {
     }
     try ab.appendSlice(left);
 
-    var len = left.len;
-
-    while (len < E.screen.cols) {
-        if (E.screen.cols - len > right.len) { // left side
-            try ab.append(' ');
-            len += 1;
-        }
-        else {
-            try ab.appendSlice(right);
-            break;
-        }
-    }
+    try ab.appendNTimes(' ', E.screen.cols - left.len - right.len);
+    try ab.appendSlice(right);
 
     try ab.appendSlice(ansi.ResetColors);
     try ab.appendSlice("\r\n"); // next line will be the message area
@@ -1581,9 +1571,7 @@ fn getWelcome() !Chars {
 
     const padding: usize =
         if (E.screen.cols < msg.len) 0 else (E.screen.cols - msg.len) / 2;
-    for (0..padding) |_| {
-        try welcome.append(' ');
-    }
+    try welcome.appendNTimes(' ', padding);
     try welcome.appendSlice(msg);
     if (welcome.items.len > E.screen.cols) {
         welcome.shrinkAndFree(E.screen.cols);
