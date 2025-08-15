@@ -43,10 +43,10 @@ pub const Buffer = struct {
     syntax: ?[]const u8 = null, // name of the syntax
     syndef: ?*const Syntax = null, // pointer to the syntax definition
 
-    pub fn init(allocator: std.mem.Allocator) Buffer {
+    pub fn init(allocator: std.mem.Allocator) !Buffer {
         return Buffer {
             .allocator = allocator,
-            .rows = .init(allocator),
+            .rows = try .initCapacity(allocator, 100),
         };
     }
 
@@ -54,7 +54,7 @@ pub const Buffer = struct {
         freeOptional(self.allocator, self.filename);
         freeOptional(self.allocator, self.syntax);
         for (self.rows.items) |row| {
-            row.deinit();
+            row.deinit(self.allocator);
         }
         self.rows.deinit();
     }
@@ -62,26 +62,24 @@ pub const Buffer = struct {
 
 /// Each row of a buffer.
 pub const Row = struct {
-    allocator: std.mem.Allocator,
     chars: Chars,
     render: []u8,
     hl: []Highlight,
     ml_comment_start: bool,
 
-    pub fn init(allocator: std.mem.Allocator) Row{
+    pub fn init(allocator: std.mem.Allocator) !Row{
         return Row{
-            .allocator = allocator,
-            .chars = .init(allocator),
+            .chars = try .initCapacity(allocator, 120),
             .render = &.{},
             .hl = &.{},
             .ml_comment_start = false,
         };
     }
 
-    pub fn deinit(self: *const Row) void {
+    pub fn deinit(self: *const Row, allocator: std.mem.Allocator) void {
         self.chars.deinit();
-        self.allocator.free(self.render);
-        self.allocator.free(self.hl);
+        allocator.free(self.render);
+        allocator.free(self.hl);
     }
 
     /// Length of the real row.

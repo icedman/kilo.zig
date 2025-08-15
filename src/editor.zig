@@ -28,7 +28,7 @@ pub fn init(allocator: std.mem.Allocator, screen: t.Screen) !void {
     E.screen.cols = screen.cols;
     E.statusMsg = Chars.init(alc);
     E.welcomeMsg = Chars.init(alc);
-    B = t.Buffer.init(alc);
+    B = try t.Buffer.init(alc);
 }
 
 /// Deinitialize the editor.
@@ -149,7 +149,7 @@ fn ioerr(err: t.FileError) !void {
 
 /// Insert a row at index `ix` with content `line`, then update it.
 fn insertRow(ix: usize, line: []const u8) t.EditorError!void {
-    var row = t.Row.init(alc);
+    var row = try t.Row.init(alc);
     try row.chars.appendSlice(line);
 
     try B.rows.insert(ix, row);
@@ -161,7 +161,7 @@ fn insertRow(ix: usize, line: []const u8) t.EditorError!void {
 /// Delete a row and deinitialize it.
 fn delRow(ix: usize) void {
     const row = B.rows.orderedRemove(ix);
-    row.deinit();
+    row.deinit(alc);
     B.dirty = true;
 }
 
