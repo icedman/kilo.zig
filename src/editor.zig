@@ -566,7 +566,7 @@ fn findCallback(ca: t.PromptCbArgs) t.EditorError!void {
         var found: bool = false;
         var view: t.View = .{};
         var lnum: usize = 0;
-        var match: []t.Highlight = &.{};
+        var oldhl: []t.Highlight = &.{};
     };
 
     const empty = ca.input.items.len == 0;
@@ -576,14 +576,14 @@ fn findCallback(ca: t.PromptCbArgs) t.EditorError!void {
     var line: usize = undefined;
 
     // restore line highlight before incsearch highlight, or clean up
-    if (static.match.len > 0) {
-        @memcpy(rowAt(static.lnum).hl, static.match);
+    if (static.oldhl.len > 0) {
+        @memcpy(rowAt(static.lnum).hl, static.oldhl);
     }
 
     // clean up
     if (ca.final) {
-        alc.free(static.match);
-        static.match = &.{};
+        alc.free(static.oldhl);
+        static.oldhl = &.{};
         static.direction = .forward;
         if (empty or ca.key == .esc) {
             V = ca.saved;
@@ -679,8 +679,8 @@ fn findCallback(ca: t.PromptCbArgs) t.EditorError!void {
         static.lnum = match_lnr;
 
         // first make a copy of current highlight, to be restored later
-        static.match = try alc.realloc(static.match, row.render.len);
-        @memcpy(static.match, row.hl);
+        static.oldhl = try alc.realloc(static.oldhl, row.render.len);
+        @memcpy(static.oldhl, row.hl);
         // apply search highlight
         @memset(row.hl[V.rx..V.rx + ca.input.items.len], t.Highlight.match);
     }
