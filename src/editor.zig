@@ -355,15 +355,17 @@ fn insertChar(c: u8) !void {
     //              textwidth
     //////////////////////////////////////////
 
-    if (V.cx > opt.textwidth and str.isWord(c)) {
-        const row = rowAt(V.cy);
-        const chars = row.chars.items;
+    const row = rowAt(V.cy);
+    const rx = cxToRx(row, V.cx);
+
+    if (rx > opt.textwidth and str.isWord(c)) {
+        const chars = row.render;
 
         // will be 1 if a space before the wrapped word must be removed
         var skipw: usize = 0;
 
         // find the start of the current word
-        var start: usize = V.cx - 1;
+        var start: usize = rx - 1;
 
         while (start > 0) {
             if (!str.isWord(chars[start - 1])) {
@@ -387,8 +389,8 @@ fn insertChar(c: u8) !void {
             //      word1$        -> deleted space before wrapped word
             //      word2|        -> move cursor at end of the word
             //
-            const wlen = V.cx - start;
-            V.cx = start - skipw;
+            const wlen = rx - start;
+            V.cx = rxToCx(row, start - skipw);
             try insertNewLine();
             V.cx += wlen;
         }
