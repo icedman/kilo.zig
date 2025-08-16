@@ -37,19 +37,21 @@ pub fn getWindowSize() !Screen {
 pub fn getCursorPosition() !Screen {
     var buf: [32]u8 = undefined;
 
-    try linux.write(WinMaximize);
-    try linux.write(ReadCursorPos);
+    try linux.write(WinMaximize ++ ReadCursorPos);
 
-    var i: usize = 0;
+    var nread = try linux.readChars(&buf);
+    if (nread < 5) return error.CursorError;
 
-    while (i < buf.len - 1) {
-        if (try linux.readChar(&buf[i]) != 1) break;
-        if (buf[i] == 'R') break;
-        i += 1;
+    // we should ignore the final R character
+    if (buf[nread - 1] == 'R') {
+        nread -= 1;
+    }
+    // not there yet? we will ignore it, but it should be there
+    else if (try linux.readChars(buf[nread..]) != 1 or buf[nread] != 'R') {
+        return error.CursorError;
     }
 
     if (buf[0] != ESC or buf[1] != '[') return error.CursorError;
-    std.debug.print("{s}\n", .{buf[2..i]});
 
     var screen = Screen{ .rows = 0, .cols = 0 };
     var semicolon: bool = false;
@@ -58,6 +60,7 @@ pub fn getCursorPosition() !Screen {
     // no sscanf, format to read is "row;col"
     // read it right to left, so we can read number of digits
     // stop before the ESC character, so at index 2
+    var i = nread;
     while (i > 2) {
         i -= 1;
         std.debug.print("reading: {c}\n", .{buf[i]});

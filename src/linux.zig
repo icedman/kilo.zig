@@ -13,23 +13,15 @@ pub fn winsize(wsz: *posix.winsize) usize {
     return linux.ioctl(STDOUT_FILENO, linux.T.IOCGWINSZ, @intFromPtr(wsz));
 }
 
-/// Read a character from stdin.
-pub fn readChar(c: *u8) !usize {
-    return posix.read(STDIN_FILENO, @as([*]u8, @ptrCast(c))[0..1]);
-}
-
 /// Keep reading from stdin until we get a valid character, ignoring
 /// .WouldBlock errors.
-pub fn readAtLeastOneChar(c: *u8) !void {
+pub fn readChars(buf: []u8) !usize {
     while (true) {
-        const n = readChar(c) catch |err| switch (err) {
+        const n = posix.read(STDIN_FILENO, buf) catch |err| switch (err) {
             error.WouldBlock => continue,
             else => return err,
         };
-        if (n == 1) return;
-        if (n == -1 and posix.errno(n) == linux.E.AGAIN) {
-            return error.EndOfStream;
-        }
+        if (n >= 1) return n;
     }
 }
 

@@ -281,21 +281,21 @@ fn processKeypress() !void {
 /// Read a character from stdin. Wait until at least one character is
 /// available.
 fn readKey() !t.Key {
-    var c: u8 = undefined;
-    try linux.readAtLeastOneChar(&c);
+    // we read a sequence of characters in a buffer
+    var seq: [4]u8 = undefined;
+    const nread = try linux.readChars(&seq);
 
-    const k: t.Key = @enumFromInt(c);
+    // if the first character is ESC, it could be part of an escape sequence
+    // in this case, nread will be > 1, that means that more than one character
+    // has been read into the buffer, and it's an escape sequence for sure
+    // if we can't recognize this sequence we return ESC anyway
+    const k: t.Key = @enumFromInt(seq[0]);
 
-    if (k == .esc) {
-        var seq: [3]u8 = undefined;
-        _ = linux.readChar(&seq[0]) catch return .esc;
-        _ = linux.readChar(&seq[1]) catch return .esc;
-
-        if (seq[0] == '[') {
-            if (asc.isDigit(seq[1])) {
-                _ = linux.readChar(&seq[2]) catch return .esc;
-                if (seq[2] == '~') {
-                    switch (seq[1]) {
+    if (k == .esc and nread > 1) {
+        if (seq[1] == '[') {
+            if (nread > 3 and asc.isDigit(seq[2])) {
+                if (seq[3] == '~') {
+                    switch (seq[2]) {
                         '1' => return .home,
                         '3' => return .del,
                         '4' => return .end,
@@ -307,7 +307,7 @@ fn readKey() !t.Key {
                     }
                 }
             }
-            switch (seq[1]) {
+            switch (seq[2]) {
                 'A' => return .up,
                 'B' => return .down,
                 'C' => return .right,
@@ -317,8 +317,8 @@ fn readKey() !t.Key {
                 else => {},
             }
         }
-        else if (seq[0] == 'O') {
-            switch (seq[1]) {
+        else if (nread > 2 and seq[1] == 'O') {
+            switch (seq[2]) {
                 'H' => return .home,
                 'F' => return .end,
                 else => {},
@@ -326,6 +326,7 @@ fn readKey() !t.Key {
         }
         return .esc;
     }
+    // not an ESC
     switch (k) {
         .ctrl_d => return .page_down,
         .ctrl_u => return .page_up,
