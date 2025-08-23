@@ -144,6 +144,8 @@ pub const Textmate = struct {
 
     pub fn updateLine(self: *Textmate, ix: usize, block: Chars) !bool {
         if (!self.ready) return false;
+        // no need to re-render
+        if (self.line_data.items[ix].valid) return false;
 
         var buffer: [1024]u8 = [_]u8{0} ** 1024;
         @memcpy(buffer[0..block.items.len], block.items);
