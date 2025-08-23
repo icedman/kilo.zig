@@ -24,6 +24,15 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const textmate_dep = b.dependency("textmate", .{
+        .target = target,
+        .optimize = optimize,
+    });
+
+    // Now this will succeed because the producer defines that module
+    exe.root_module.addImport("textmate", textmate_dep.module("textmate"));
+
+    // And link the lib if you want C ABI symbols
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
     // step when running `zig build`).

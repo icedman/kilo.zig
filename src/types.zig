@@ -65,6 +65,7 @@ pub const Row = struct {
     chars: Chars,
     render: []u8,
     hl: []Highlight,
+    hlx: []u32,
     ml_comment_start: bool,
 
     pub fn init(allocator: std.mem.Allocator) !Row{
@@ -72,6 +73,7 @@ pub const Row = struct {
             .chars = try .initCapacity(allocator, 120),
             .render = &.{},
             .hl = &.{},
+            .hlx = &.{},
             .ml_comment_start = false,
         };
     }
@@ -80,6 +82,7 @@ pub const Row = struct {
         self.chars.deinit();
         allocator.free(self.render);
         allocator.free(self.hl);
+        allocator.free(self.hlx);
     }
 
     /// Length of the real row.

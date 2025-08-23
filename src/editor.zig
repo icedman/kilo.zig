@@ -12,6 +12,7 @@ var alc: std.mem.Allocator = undefined;
 var E: t.Editor = undefined;
 var V: t.View = undefined;
 var B: t.Buffer = undefined;
+var Tx: txmt.Textmate = undefined;
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -29,6 +30,7 @@ pub fn init(allocator: std.mem.Allocator, screen: t.Screen) !void {
     E.statusMsg = Chars.init(alc);
     E.welcomeMsg = Chars.init(alc);
     B = try t.Buffer.init(alc);
+    Tx = try txmt.Textmate.init(alc);
 }
 
 /// Deinitialize the editor.
@@ -36,6 +38,7 @@ pub fn deinit() void {
     E.statusMsg.deinit();
     E.welcomeMsg.deinit();
     B.deinit();
+    Tx.deinit();
 }
 
 /// Start up the editor: open the path in args if valid, start the event loop.
@@ -65,6 +68,9 @@ pub fn startUp(path: ?[]const u8) !void {
 fn openFile(path: []const u8) !void {
     B.filename = try updateFilename(B.filename, path);
     B.syntax = try selectSyntax();
+
+    // select
+    Tx.setup(path);
 
     // read lines if the file could be opened
     const file = std.fs.cwd().openFile(path, .{ .mode = .read_only });
@@ -156,6 +162,8 @@ fn insertRow(ix: usize, line: []const u8) t.EditorError!void {
 
     try updateRow(ix);
     B.dirty = true;
+    
+    Tx.invalidate(ix);
 }
 
 /// Delete a row and deinitialize it.
@@ -163,12 +171,16 @@ fn delRow(ix: usize) void {
     const row = B.rows.orderedRemove(ix);
     row.deinit(alc);
     B.dirty = true;
+    
+    Tx.invalidate(ix);
 }
 
 /// Update row.render, that is the visual representation of the row.
 /// Performs a syntax update at the end.
 fn updateRow(ix: usize) !void {
     const row = rowAt(ix);
+
+    Tx.invalidate(ix);
 
     // get the length of the rendered row and reallocate
     const rlen = cxToRx(row, row.len());
@@ -991,6 +1003,7 @@ fn drawRows(ab: *Chars) !void {
             // visible part of the line and its highlight
             const rline = if (len > 0) rows[ix].render[V.coloff..] else &.{};
             const hl = if (len > 0) rows[ix].hl[V.coloff..] else &.{};
+            const hlx = if (len > 0) rows[ix].hlx[V.coloff..] else &.{};
 
             var current_color = t.Highlight.normal;
 
@@ -1010,8 +1023,17 @@ fn drawRows(ab: *Chars) !void {
                         try ab.append(symbol);
                         try ab.appendSlice(ansi.InvertColors);
                     }
-                }
-                else if (hl[j] != current_color) {
+                } else if (hlx[j] != 0) {
+
+                    var buf: [128]u8 = undefined; // fixed buffer
+                    var fbs = std.io.fixedBufferStream(&buf);
+                    const writer = fbs.writer();
+
+                    const rgb = txmt.Rgb.unpack(hlx[j]);
+                    try writer.print("\x1b[38;2;{d};{d};{d}m", .{ rgb.r, rgb.g, rgb.b });
+                    try ab.appendSlice(fbs.getWritten());
+
+                } else if (hl[j] != current_color) {
                     const color = hl[j];
                     current_color = color;
                     const hlg = syndefs.hlGroups[@intFromEnum(color)];
@@ -1220,8 +1242,46 @@ fn selectSyntax() !?[]const u8 {
     return null;
 }
 
-/// Apply syntax highlighting to a row.
 fn updateSyntax(ix: usize) !void {
+    const row = rowAt(ix);
+    row.hl = try alc.realloc(row.hl, row.render.len);
+    @memset(row.hl, t.Highlight.normal);
+    
+    row.hlx = try alc.realloc(row.hlx, row.render.len);
+    @memset(row.hlx, 0);
+
+    if (opt.syntax == false) {
+        return;
+    }
+
+    const changed = try Tx.updateLine(ix, row.chars); 
+
+    // render ...
+    const captures = Tx.processor.captures;
+    var current_color: u32 = 0;
+    for(row.chars.items, 0..) |ch, i| {
+        var cap = txmt.ParseCapture{};
+        for (0..captures.items.len) |ci| {
+            if (i == captures.items[ci].start) {
+                cap = captures.items[ci];
+                var colors = txmt.ThemeColors{};
+                _ = Tx.theme.getScope(cap.scope[0..cap.scope.len], cap.scope_hash, &colors);
+                if (colors.foreground_rgb) |fg| {
+                    current_color = fg.pack();
+                }
+            }
+        }
+        row.hlx[i] = current_color;
+        _ = ch;
+    }
+
+    if (changed and ix + 1 < B.rows.items.len) {
+        try updateSyntax(ix + 1);
+    }
+}
+
+/// Apply syntax highlighting to a row.
+fn updateSyntax_(ix: usize) !void {
     const row = rowAt(ix);
 
     row.hl = try alc.realloc(row.hl, row.render.len);
@@ -1610,6 +1670,8 @@ const t = @import("types.zig");
 const message = @import("message.zig");
 const str = @import("string.zig");
 const linux = @import("linux.zig");
+
+const txmt = @import("textmate.zig");
 
 const asc = std.ascii;
 const time = std.time.timestamp;
