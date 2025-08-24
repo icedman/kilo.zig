@@ -18,9 +18,11 @@ pub const Rgb = txmt.Rgb;
 // Kilo's Chars
 const Chars = std.ArrayList(u8);
 
-const StateContextSerial = struct { u64, u64, u64, u64 };
-const LineParseData = struct {
+pub const StateContextSerial = struct { u64, u64, u64, u64 };
+pub const LineParseData = struct {
     state: std.ArrayList(StateContextSerial),
+    starting_hash: u64 = 0,
+    hash: u64 = 0,
     valid: bool = false,
 
     pub fn init(allocator: std.mem.Allocator) !LineParseData {
@@ -29,7 +31,7 @@ const LineParseData = struct {
         };
     }
 
-    pub fn deinit(self: *LineParseData) void {
+    pub fn deinit(self: *const LineParseData) void {
         self.state.deinit();
     }
 };
@@ -48,8 +50,6 @@ pub const Textmate = struct {
     parse_state: ParseState = undefined,
     processor: Processor = undefined,
     ready: bool = false,
-    line_data: std.ArrayList(LineParseData),
-    previous_ix: usize = 0,
 
     pub fn init(allocator: std.mem.Allocator) !Textmate {
         try oni.init(&.{oni.Encoding.utf8});
@@ -81,7 +81,6 @@ pub const Textmate = struct {
         return Textmate{
             .allocator = allocator,
             .theme = theme,
-            .line_data = std.ArrayList(LineParseData).init(allocator),
         };
     }
 
@@ -95,10 +94,6 @@ pub const Textmate = struct {
         }
         ThemeLibrary.deinitLibrary();
         GrammarLibrary.deinitLibrary();
-        for (self.line_data.items) |*item| {
-            item.deinit();
-        }
-        self.line_data.deinit();
     }
 
     pub fn setup(self: *Textmate, path: []const u8) void {
@@ -125,55 +120,34 @@ pub const Textmate = struct {
         }
     }
 
-    pub fn touch(self: *Textmate, ix: usize) void {
-        while (self.line_data.items.len < ix) {
-            const ln = LineParseData.init(self.allocator) catch {};
-            self.line_data.append(ln) catch {};
-            break;
-        }
-    }
-
-    pub fn invalidate(self: *Textmate, ix: usize) void {
-        self.touch(ix + 100);
-        for (ix..self.line_data.items.len, 0..) |i, ctr| {
-            self.line_data.items[i].valid = false;
-            _ = ctr;
-            break;
-        }
-    }
-
-    pub fn updateLine(self: *Textmate, ix: usize, block: Chars) !bool {
+    pub fn updateLine(self: *Textmate, ix: usize, block: Chars, previous_parse: ?*LineParseData, current_line_parse: *LineParseData) !bool {
         if (!self.ready) return false;
         // no need to re-render
-        if (self.line_data.items[ix].valid) return false;
+        _ = ix;
 
+        const previous_hash = current_line_parse.hash;
+        var previous_lines_hash_changed = false;
+        if (previous_parse) |pp| {
+            if (pp.valid) {
+                if (current_line_parse.starting_hash != pp.hash) {
+                    try self.parser.deserialize(&self.parse_state, &pp.state);
+                    current_line_parse.starting_hash = pp.hash;
+                    previous_lines_hash_changed = true;
+                }
+            }
+        }
+        
+        if (current_line_parse.valid and !previous_lines_hash_changed) return false;
+        
         var buffer: [1024]u8 = [_]u8{0} ** 1024;
         @memcpy(buffer[0..block.items.len], block.items);
         buffer[block.items.len] = '\n';
 
-        if (self.previous_ix + 1 == ix) {
-            if (self.line_data.items[self.previous_ix].valid) {
-                try self.parser.deserialize(&self.parse_state, &self.line_data.items[self.previous_ix].state);
-            }
-        }
-
-        const previous_hash = blk: {
-            if (self.line_data.items[ix].valid) {
-                break :blk hashQuads(self.line_data.items[ix].state.items);
-            } else break :blk 0;
-        };
-
         try self.parser.parseLine(&self.parse_state, &buffer);
-        try self.parser.serialize(&self.parse_state, &self.line_data.items[ix].state);
-        self.line_data.items[ix].valid = true;
-        self.previous_ix = ix;
+        try self.parser.serialize(&self.parse_state, &current_line_parse.state);
+        current_line_parse.valid = true;
+        current_line_parse.hash = hashQuads(current_line_parse.state.items);
 
-        const current_hash = blk: {
-            if (self.line_data.items[ix].valid) {
-                break :blk hashQuads(self.line_data.items[ix].state.items);
-            } else break :blk 0;
-        };
-
-        return previous_hash != current_hash;
+        return previous_hash != current_line_parse.hash;
     }
 };

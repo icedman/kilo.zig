@@ -20,6 +20,7 @@ pub const Editor = struct {
     statusMsg: Chars,
     statusMsgTime: i64,
     welcomeMsg: Chars,
+    scope: Chars,
 };
 
 /// A 'view' of the current buffer, is what we can see of it, and where the
@@ -66,6 +67,7 @@ pub const Row = struct {
     render: []u8,
     hl: []Highlight,
     hlx: []u32,
+    parsed: txmt.LineParseData,
     ml_comment_start: bool,
 
     pub fn init(allocator: std.mem.Allocator) !Row{
@@ -74,12 +76,14 @@ pub const Row = struct {
             .render = &.{},
             .hl = &.{},
             .hlx = &.{},
+            .parsed = try txmt.LineParseData.init(allocator),  
             .ml_comment_start = false,
         };
     }
 
     pub fn deinit(self: *const Row, allocator: std.mem.Allocator) void {
         self.chars.deinit();
+        self.parsed.deinit();
         allocator.free(self.render);
         allocator.free(self.hl);
         allocator.free(self.hlx);
@@ -242,5 +246,5 @@ pub fn freeOptional(allocator: std.mem.Allocator, sl: anytype) void {
 ///////////////////////////////////////////////////////////////////////////////
 
 const std = @import("std");
-
+const txmt = @import("textmate.zig");
 const Chars = std.ArrayList(u8);

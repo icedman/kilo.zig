@@ -29,6 +29,7 @@ pub fn init(allocator: std.mem.Allocator, screen: t.Screen) !void {
     E.screen.cols = screen.cols;
     E.statusMsg = Chars.init(alc);
     E.welcomeMsg = Chars.init(alc);
+    E.scope = Chars.init(alc);
     B = try t.Buffer.init(alc);
     Tx = try txmt.Textmate.init(alc);
 }
@@ -37,6 +38,7 @@ pub fn init(allocator: std.mem.Allocator, screen: t.Screen) !void {
 pub fn deinit() void {
     E.statusMsg.deinit();
     E.welcomeMsg.deinit();
+    E.scope.deinit();
     B.deinit();
     Tx.deinit();
 }
@@ -163,7 +165,7 @@ fn insertRow(ix: usize, line: []const u8) t.EditorError!void {
     try updateRow(ix);
     B.dirty = true;
     
-    Tx.invalidate(ix);
+    // Tx.invalidate(ix, true);
 }
 
 /// Delete a row and deinitialize it.
@@ -172,7 +174,7 @@ fn delRow(ix: usize) void {
     row.deinit(alc);
     B.dirty = true;
     
-    Tx.invalidate(ix);
+    // Tx.invalidate(ix, true);
 }
 
 /// Update row.render, that is the visual representation of the row.
@@ -180,7 +182,8 @@ fn delRow(ix: usize) void {
 fn updateRow(ix: usize) !void {
     const row = rowAt(ix);
 
-    Tx.invalidate(ix);
+    // Tx.invalidate(ix, false);
+    row.parsed.valid = false;
 
     // get the length of the rendered row and reallocate
     const rlen = cxToRx(row, row.len());
@@ -1102,7 +1105,9 @@ fn drawStatusline(ab: *Chars) !void {
     }
     try ab.appendSlice(left);
 
-    try ab.appendNTimes(' ', E.screen.cols - left.len - right.len);
+    try ab.appendSlice(E.scope.items);
+
+    try ab.appendNTimes(' ', E.screen.cols - left.len - right.len - E.scope.items.len);
     try ab.appendSlice(right);
 
     try ab.appendSlice(ansi.ResetColors);
@@ -1254,7 +1259,14 @@ fn updateSyntax(ix: usize) !void {
         return;
     }
 
-    const changed = try Tx.updateLine(ix, row.chars); 
+    const previous_line_parsed: ?*txmt.LineParseData = blk: {
+        if (ix > 0) {
+            const previous_row = rowAt(ix - 1);
+            break :blk &previous_row.parsed;
+        }
+        break :blk null;
+    };
+    const changed = try Tx.updateLine(ix, row.chars, previous_line_parsed, &row.parsed); 
 
     // render ...
     const captures = Tx.processor.captures;
